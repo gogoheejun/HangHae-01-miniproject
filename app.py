@@ -8,6 +8,10 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
+from bson import json_util
+import json
+import time
+import schedule
 
 
 
@@ -17,11 +21,10 @@ app.config['UPLOAD_FOLDER'] = "./static/profile_pics"
 
 SECRET_KEY = 'SPARTA'
 
-client = MongoClient('localhost', 27017)
+client = MongoClient('mongodb://3.35.11.153', 27017, username="test", password="test")
 db = client.dbsparta_plus_week4
 
 
-##젤 처음에 로그인 검사해서, jwt없으면->login함수(로그인으로이동), jwt있으면->index.html이동
 @app.route('/')
 def home():
     token_receive = request.cookies.get('mytoken')
@@ -167,6 +170,8 @@ def posting():
         return redirect(url_for("home"))
 
 
+
+
 # 댓글 가져오기
 @app.route("/get_posts", methods=['GET'])
 def get_posts():
@@ -219,10 +224,11 @@ def update_like():
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return redirect(url_for("home"))
 
-@app.route('/get_youtube_url',methods=['GET'])
-def get_youtube_url():
-    url = get_url()
-    return jsonify({"result":"success","url":url})
+# @app.route('/get_youtube_url',methods=['GET'])
+# def get_youtube_url():
+#     url = get_url()
+#     return jsonify({"result":"success","url":url})
+
 
 #url 크롤링해서 리턴해주는 함수
 def get_url():
@@ -238,6 +244,59 @@ def get_url():
     except:
         print("get_url 예외처리")
         return get_url()
+
+
+@app.route('/show_video', methods=['GET'])
+def show_video():
+    # url = db.video.find({}, {"_id": False})
+    #
+    # return jsonify({"result": "success", "url": url})
+
+    url = list(db["video"].find({}).sort({_id: -1}).limit(1))
+    return json.dumps(url, default=json_util.default)
+
+
+
+@app.route('/save_url', methods=['POST'])
+def save_url():
+    db.video.remove({})
+    url = get_url()
+
+
+    doc = {
+        "url": url
+    }
+    db.video.insert_one(doc)
+
+    return jsonify({'result': 'success', 'msg': '성공'})
+
+
+@app.route('/delete_comment', methods=['POST'])
+def delete_comment():
+    token_receive = request.cookies.get('mytoken')
+    payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+    user_info = db.users.find_one({"username": payload["id"]})
+    comment_receive = request.form["comment_give"]
+
+    doc = {
+        "username": user_info['username'],
+        "comment": comment_receive
+    }
+
+    db.posts.delete_one(doc)
+    # return jsonify({'result': 'success', 'msg': f'단어 {user_info} 삭제'})
+    return jsonify({'result': 'success', 'msg': '코멘트 삭제'})
+
+
+
+
+@app.route('/delete_post', methods=['POST'])
+def delete_post():
+    db.posts.remove({})
+    return jsonify({'result': 'success'})
+
+
+
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)

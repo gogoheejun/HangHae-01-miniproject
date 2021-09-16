@@ -1,35 +1,81 @@
 
-
+show_video()
 clear_page = setInterval(()=>{
-    get_youtube_url()
-    delete_posts()
-},5000)
 
-//url소스 가져오기 요청
-function get_youtube_url(){
+    save_url()
+    show_video()
+    // delete_posts()
+},10000)
+
+function show_video() {
     $.ajax({
         type: "GET",
-        url: "/get_youtube_url",
-        data:{},
-        success: (response)=>{
+        url: "/show_video",
+        data: {},
+        success: function (response) {
             if(response["url"] == null) {
                 console.log("null이라 다시함수 고")
-                return get_youtube_url()}
+                return }
             if (response["result"] == "success") {
-                let url = response["url"];
+                let url = response["url"]
+                let temp_html = `
+                <iframe src="${url}" frameborder="0"
+                allow="accelerometer; autoplay=1; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                   allowfullscreen=""></iframe>
+                `
+                $("#video-place").append(temp_html)
+
                 console.log(url);
             }else{
                 console.log("유튜브 가져오는 과정에서 예외")
                 console.log(response)
             }
+
         }
     })
 }
-////////////////////
-//댓글정보 모두 삭제요청
-function delete_posts(){
-    console.log("deleted");
+
+function save_url() {
+    $("#video-place").empty()
+    $.ajax({
+        type: "POST",
+        url: "/save_url",
+        data: {},
+        success: function (response) {
+            console.log(response["msg"])
+        }
+    })
 }
+
+function delete_posts(){
+    $.ajax({
+        type: "POST",
+        url: "/delete_post",
+        data: {},
+        success: function (response) {
+            console.log(response)
+            //window.location.href = "/"
+        }
+    })
+}
+
+function delete_comment(comment){
+    $.ajax({
+        type: "POST",
+        url: "/delete_comment",
+        data: {
+            comment_give: comment
+        },
+        success: function (response) {
+            console.log(response)
+            alert(response["msg"])
+            window.location.href = "/"
+        }
+    })
+}
+
+
+
 //댓글 업로드(수정포함)
 function post() {
     let comment = $("#textarea-post").val()
@@ -56,6 +102,8 @@ function update_post(id){
     let modal = document.getElementById('modal-post');
     modal.classList.add("is-active")
 }
+
+
 
 //댓글가져오기-index.html과 user.html에서 모두 사용됨
 function get_posts(username) {
@@ -100,13 +148,17 @@ function get_posts(username) {
                                                                                            aria-hidden="true"></i></span>&nbsp;<span class="like-num">${num2str(post["count_heart"])}</span>
                                                         </a>
                                                     </div>
-
+                                                    <div class="level-right">
+                                                       <button id="btn-edit" class="btn btn-sparta btn-lg0" onclick="update_post('${post['comment']}')">
+                                                            <i class="fa fa-pen-o" aria-hidden="true"></i>                                                        
+                                                        <button id="btn-delete" class="btn btn-sparta btn-lg0" onclick="delete_comment('${post['comment']}')">
+                                                            <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                                    </div>
+               
                                                 </nav>
                                             </div>
                                              <div class="media-right">
-<!--                                             수정버튼 누르면 모달띄우고, js의 post_id에 id넣어줌-->
-                                                <p class="update-post"  style="cursor: pointer"  onclick=update_post("${post["_id"]}")>수정하기</p>
-                                                <p class="update-post"  style="cursor: pointer" onclick=alert()>삭제하기</p>
+<!--                                             수정버튼 누르면 모달띄우고, js의 post_id에 id넣어줌-->                                               
                                             </div>
                                         </article>
                                     </div>`
