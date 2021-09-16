@@ -9,8 +9,6 @@ from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
 
-
-
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config['UPLOAD_FOLDER'] = "./static/profile_pics"
@@ -110,9 +108,9 @@ def check_dup():
 def save_img():
     token_receive = request.cookies.get('mytoken')
     try:
-        print(request.form)
         # ImmutableMultiDict([('file_give', 'undefined'), ('name_give', 'aaa'), ('about_give', '나는 에이에이다!ㄴㅁ')])
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+
         username = payload["id"]
         name_receive = request.form["name_give"]
         about_receive = request.form["about_give"]
@@ -150,7 +148,7 @@ def posting():
 
         if postId_receive:  # postid 있으면(=기존 게시물 수정하면)
             new_doc = {"comment": comment_receive}
-            db.posts.update_one({'_id': ObjectId(postId_receive)},{'$set':new_doc})
+            db.posts.update_one({'_id': ObjectId(postId_receive)}, {'$set': new_doc})
             print(type(ObjectId(postId_receive)))
             return jsonify({"result": "success", 'msg': '수정 성공'})
         else:
@@ -219,12 +217,14 @@ def update_like():
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return redirect(url_for("home"))
 
-@app.route('/get_youtube_url',methods=['GET'])
+
+@app.route('/get_youtube_url', methods=['GET'])
 def get_youtube_url():
     url = get_url()
-    return jsonify({"result":"success","url":url})
+    return jsonify({"result": "success", "url": url})
 
-#url 크롤링해서 리턴해주는 함수
+
+# url 크롤링해서 리턴해주는 함수
 def get_url():
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
@@ -238,6 +238,7 @@ def get_url():
     except:
         print("get_url 예외처리")
         return get_url()
+
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)
