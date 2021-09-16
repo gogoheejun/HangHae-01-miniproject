@@ -8,6 +8,10 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
+from bson import json_util
+import json
+import time
+import schedule
 
 
 
@@ -21,7 +25,6 @@ client = MongoClient('mongodb://3.35.11.153', 27017, username="test", password="
 db = client.dbsparta_plus_week4
 
 
-##젤 처음에 로그인 검사해서, jwt없으면->login함수(로그인으로이동), jwt있으면->index.html이동
 @app.route('/')
 def home():
     token_receive = request.cookies.get('mytoken')
@@ -243,26 +246,29 @@ def get_url():
         return get_url()
 
 
+@app.route('/show_video', methods=['GET'])
+def show_video():
+    # url = db.video.find({}, {"_id": False})
+    #
+    # return jsonify({"result": "success", "url": url})
 
-@app.route("/show_video11", methods=['GET'])
-def show_video11():
-    url = db.video.find({}, {"_id": False})
-    return jsonify({"result": "success", "url": url})
+    url = list(db["video"].find({}).sort({_id: -1}).limit(1))
+    return json.dumps(url, default=json_util.default)
 
 
 
-
-@app.route('/show_video1', methods=['POST'])
-def show_video1():
+@app.route('/save_url', methods=['POST'])
+def save_url():
     db.video.remove({})
     url = get_url()
+
 
     doc = {
         "url": url
     }
     db.video.insert_one(doc)
 
-    return jsonify({"result": "success", "url": url})
+    return jsonify({'result': 'success', 'msg': '성공'})
 
 
 @app.route('/delete_comment', methods=['POST'])

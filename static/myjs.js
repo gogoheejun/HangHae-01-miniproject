@@ -1,62 +1,21 @@
 
-
+show_video()
 clear_page = setInterval(()=>{
-    // get_youtube_url()
+
+    save_url()
+    show_video()
     // delete_posts()
-    show_video1()
-    delete_posts()
-    show_video11()
-},20000)
+},10000)
 
-// //url소스 가져오기 요청
-// function get_youtube_url(){
-//     $.ajax({
-//         type: "POST",
-//         url: "/get_youtube_url",
-//         data:{},
-//         success: (response)=>{
-//             if(response["url"] == null) {
-//                 console.log("null이라 다시함수 고")
-//                 return get_youtube_url()}
-//             if (response["result"] == "success") {
-//                 let url = response["url"];
-//                 console.log(url);
-//             }else{
-//                 console.log("유튜브 가져오는 과정에서 예외")
-//                 console.log(response)
-//             }
-//         }
-//     })
-// }
-////////////////////
-//댓글정보 모두 삭제요청
-
-function show_video11() {
+function show_video() {
     $.ajax({
         type: "GET",
         url: "/show_video",
         data: {},
         success: function (response) {
-            console.log(response["url"])
-            //window.location.href = "/"
-        }
-    })
-}
-
-
-
-
-function show_video1() {
-    $("#video-place").empty()
-    $.ajax({
-        type: "POST",
-        url: "/show_video1",
-        data: {},
-        success: function (response) {
-
             if(response["url"] == null) {
                 console.log("null이라 다시함수 고")
-                return get_youtube_url()}
+                return }
             if (response["result"] == "success") {
                 let url = response["url"]
                 let temp_html = `
@@ -71,6 +30,19 @@ function show_video1() {
                 console.log("유튜브 가져오는 과정에서 예외")
                 console.log(response)
             }
+
+        }
+    })
+}
+
+function save_url() {
+    $("#video-place").empty()
+    $.ajax({
+        type: "POST",
+        url: "/save_url",
+        data: {},
+        success: function (response) {
+            console.log(response["msg"])
         }
     })
 }
