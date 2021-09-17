@@ -1,23 +1,18 @@
 
-show_video()
-clear_page = setInterval(()=>{
-
-    save_url()
-    show_video()
-    // delete_posts()
-},10000)
-
-function show_video() {
+function get_url_from_db() {
+    alert('알림')
     $.ajax({
         type: "GET",
-        url: "/show_video",
+        url: "/get_url_fromdb",
         data: {},
         success: function (response) {
-            if(response["url"] == null) {
+            console.log('test1')
+            if(response["video"] == null) {
                 console.log("null이라 다시함수 고")
                 return }
             if (response["result"] == "success") {
-                let url = response["url"]
+                console.log('test2')
+                let url = response['video']
                 let temp_html = `
                 <iframe src="${url}" frameborder="0"
                 allow="accelerometer; autoplay=1; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -30,19 +25,6 @@ function show_video() {
                 console.log("유튜브 가져오는 과정에서 예외")
                 console.log(response)
             }
-
-        }
-    })
-}
-
-function save_url() {
-    $("#video-place").empty()
-    $.ajax({
-        type: "POST",
-        url: "/save_url",
-        data: {},
-        success: function (response) {
-            console.log(response["msg"])
         }
     })
 }
@@ -73,8 +55,6 @@ function delete_comment(comment){
         }
     })
 }
-
-
 
 //댓글 업로드(수정포함)
 function post() {
