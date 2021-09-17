@@ -1,31 +1,21 @@
 
-show_video()
-clear_page = setInterval(()=>{
+current_video_url = "";
 
-    save_url()
-    show_video()
-    // delete_posts()
-},10000)
+$(document).ready( get_new_video())
 
-function show_video() {
+function get_new_video() {
     $.ajax({
         type: "GET",
-        url: "/show_video",
+        url: "/get_new_video",
         data: {},
         success: function (response) {
-            if(response["url"] == null) {
-                console.log("null이라 다시함수 고")
-                return }
+            // if(response["url"] == null) {
+            //     console.log("null이라 다시함수 고")
+            //     return }
             if (response["result"] == "success") {
-                let url = response["url"]
-                let temp_html = `
-                <iframe src="${url}" frameborder="0"
-                allow="accelerometer; autoplay=1; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                   allowfullscreen=""></iframe>
-                `
-                $("#video-place").append(temp_html)
-
-                console.log(url);
+                current_video_url = response["new_url"]
+                document.getElementById("mainframe").src = current_video_url
+                console.log(current_video_url);
             }else{
                 console.log("유튜브 가져오는 과정에서 예외")
                 console.log(response)
@@ -35,17 +25,6 @@ function show_video() {
     })
 }
 
-function save_url() {
-    $("#video-place").empty()
-    $.ajax({
-        type: "POST",
-        url: "/save_url",
-        data: {},
-        success: function (response) {
-            console.log(response["msg"])
-        }
-    })
-}
 
 function delete_posts(){
     $.ajax({
@@ -84,7 +63,7 @@ function post() {
         type: "POST",
         url: "/posting",
         data: {
-            comment_give: comment,
+            comment_give: "<a href="+current_video_url+">영상링크 클릭! </a>"+"<br>"+comment,
             date_give: today,
             postId_give: post_id,
         },
@@ -124,6 +103,9 @@ function get_posts(username) {
                     let time_before = time2str(time_post)
 
                     let class_heart = post['heart_by_me'] ? "fa-heart" : "fa-heart-o"
+                    // let count_heart = post['count_heart']
+                    let class_like = post['like_by_me'] ? "fa-thumbs-up" : "fa-thumbs-o-up"
+                    let class_unlike = post['unlike_by_me'] ? "fa-thumbs-down" : "fa-thumbs-o-down"
 
                     let html_temp_true = `<div class="box" id="${post["_id"]}"> 
                                         <article class="media">
@@ -141,16 +123,29 @@ function get_posts(username) {
                                                         ${post['comment']}
                                                     </p>
                                                 </div>
+                                                
                                                 <nav class="level is-mobile">
                                                     <div class="level-left">
                                                         <a class="level-item is-sparta" aria-label="heart" onclick="toggle_like('${post['_id']}', 'heart')">
                                                             <span class="icon is-small"><i class="fa ${class_heart}"
                                                                                            aria-hidden="true"></i></span>&nbsp;<span class="like-num">${num2str(post["count_heart"])}</span>
                                                         </a>
+                                                        
+                                                        <a class="level-item is-sparta" aria-label="like" onclick="toggle_like('${post['_id']}', 'like')">
+                                                            <span class="icon is-small"><i class="fa ${class_like}"
+                                                                                           aria-hidden="true"></i></span>&nbsp;<span class="like-num">${num2str(post["count_like"])}</span>
+                                                        </a>
+                                                        
+                                                         <a class="level-item is-sparta" aria-label="unlike" onclick="toggle_like('${post['_id']}', 'unlike')">
+                                                            <span class="icon is-small"><i class="fa ${class_unlike}"
+                                                                                           aria-hidden="true"></i></span>&nbsp;<span class="like-num">${num2str(post["count_unlike"])}</span>
+                                                        </a>
+                                                        
                                                     </div>
-                                                    <div class="level-right">
-                                                       <button id="btn-edit" class="btn btn-sparta btn-lg0" onclick="update_post('${post['comment']}')">
-                                                            <i class="fa fa-pen-o" aria-hidden="true"></i>                                                        
+<!--                                                    수정, 삭제 기능-->
+                                                    <div class="level-right">  
+                                                       <button id="btn-edit" class="btn btn-sparta btn-lg0" onclick="update_post('${post['_id']}')">
+                                                            <i class="fa fa-pencil" aria-hidden="true"></i>                                                        
                                                         <button id="btn-delete" class="btn btn-sparta btn-lg0" onclick="delete_comment('${post['comment']}')">
                                                             <i class="fa fa-trash-o" aria-hidden="true"></i>
                                                     </div>
@@ -185,6 +180,17 @@ function get_posts(username) {
                                                             <span class="icon is-small"><i class="fa ${class_heart}"
                                                                                            aria-hidden="true"></i></span>&nbsp;<span class="like-num">${num2str(post["count_heart"])}</span>
                                                         </a>
+                                                        
+                                                        <a class="level-item is-sparta" aria-label="like" onclick="toggle_like('${post['_id']}', 'like')">
+                                                            <span class="icon is-small"><i class="fa ${class_like}"
+                                                                                           aria-hidden="true"></i></span>&nbsp;<span class="like-num">${num2str(post["count_like"])}</span>
+                                                        </a>
+                                                        
+                                                         <a class="level-item is-sparta" aria-label="unlike" onclick="toggle_like('${post['_id']}', 'unlike')">
+                                                            <span class="icon is-small"><i class="fa ${class_unlike}"
+                                                                                           aria-hidden="true"></i></span>&nbsp;<span class="like-num">${num2str(post["count_unlike"])}</span>
+                                                        </a>
+                                                        
                                                     </div>
 
                                                 </nav>
@@ -234,8 +240,9 @@ function toggle_like(post_id, type) {
     console.log(post_id, type)
     let $a_like = $(`#${post_id} a[aria-label='${type}']`)
     let $i_like = $a_like.find("i")
-    let class_s = {"heart": "fa-heart", "star": "fa-star", "like": "fa-thumbs-up"}
-    let class_o = {"heart": "fa-heart-o", "star": "fa-star-o", "like": "fa-thumbs-o-up"}
+    let class_s = {"heart": "fa-heart", "unlike": "fa-thumbs-down", "like": "fa-thumbs-up"}
+    let class_o = {"heart": "fa-heart-o", "unlike": "fa-thumbs-o-down", "like": "fa-thumbs-o-up"}
+
     if ($i_like.hasClass(class_s[type])) {
         $.ajax({
             type: "POST",

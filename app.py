@@ -21,10 +21,10 @@ app.config['UPLOAD_FOLDER'] = "./static/profile_pics"
 
 SECRET_KEY = 'SPARTA'
 
-client = MongoClient('mongodb://3.35.11.153', 27017, username="test", password="test")
+client = MongoClient('localhost', 27017)
 db = client.dbsparta_plus_week4
 
-
+#
 @app.route('/')
 def home():
     token_receive = request.cookies.get('mytoken')
@@ -40,6 +40,10 @@ def home():
         return redirect(url_for("login", msg="로그인 시간이 만료되었습니다."))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="로그인 정보가 존재하지 않습니다."))
+
+# @app.route('/')
+# def home():
+#    return render_template('index.html')
 
 
 @app.route('/login')
@@ -71,12 +75,17 @@ def sign_in():
     pw_hash = hashlib.sha256(password_receive.encode('utf-8')).hexdigest()
     result = db.users.find_one({'username': username_receive, 'password': pw_hash})
 
+
     if result is not None:
         payload = {
             'id': username_receive,
             'exp': datetime.utcnow() + timedelta(seconds=60 * 60 * 24)  # 로그인 24시간 유지
         }
+        # token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
+        # decode('utf-8')>> 문자열로 반환시켜줌.
 
         return jsonify({'result': 'success', 'token': token})
     # 찾지 못하면
@@ -170,6 +179,11 @@ def posting():
         return redirect(url_for("home"))
 
 
+@app.route('/posting', methods=['POST'])
+def update_comment():
+    db.suer.update_one({'comment' : ''})
+
+
 
 
 # 댓글 가져오기
@@ -187,13 +201,19 @@ def get_posts():
         for post in posts:
             # print(type(post["_id"]))
             post["_id"] = str(post["_id"])
-            # 좋아요 몇개인지
+            # 하트 몇개인지
             post["count_heart"] = db.likes.count_documents({"post_id": post["_id"], "type": "heart"})
-            # 내가 좋아요 했는지
-            post["heart_by_me"] = bool(
-                db.likes.find_one({"post_id": post["_id"], "type": "heart", "username": payload['id']}))
-            # 내가쓴건지
+            # 내가 하트 했는지
+            post["heart_by_me"] = bool(db.likes.find_one({"post_id": post["_id"], "type": "heart", "username": payload['id']}))
+
+            post["count_like"] = db.likes.count_documents({"post_id": post["_id"], "type": "like"})
+            post["like_by_me"] = bool(db.likes.find_one({"post_id": post["_id"], "type": "like", "username": payload['id']}))
+
+            post["count_unlike"] = db.likes.count_documents({"post_id": post["_id"], "type": "unlike"})
+            post["unlike_by_me"] = bool(db.likes.find_one({"post_id": post["_id"], "type": "unlike", "username": payload['id']}))
+
             post['by_me'] = True if post["username"] == str(payload['id']) else False
+
         return jsonify({"result": "success", "msg": "포스팅을 가져왔습니다.", "posts": posts, "my_username": payload["id"]})
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return redirect(url_for("home"))
@@ -224,14 +244,18 @@ def update_like():
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return redirect(url_for("home"))
 
-# @app.route('/get_youtube_url',methods=['GET'])
-# def get_youtube_url():
-#     url = get_url()
-#     return jsonify({"result":"success","url":url})
+@app.route("/get_new_video", methods=['GET'])
+def get_new_video():
+    print("1")
+    new_url = get_url()
+    print("new_url:",new_url)
+    print("2")
+    return jsonify({"result": "success", "new_url":new_url})
 
 
 #url 크롤링해서 리턴해주는 함수
 def get_url():
+    print("3")
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
     data = requests.get('https://randomvideo.pythonanywhere.com/', headers=headers)
@@ -239,36 +263,12 @@ def get_url():
     soup = BeautifulSoup(data.text, 'html.parser')
     raw_source = str(soup.select('body > iframe'))
     try:
+        print("4")
         src = raw_source.split("=")[-2][1:]
         return src
     except:
         print("get_url 예외처리")
         return get_url()
-
-
-@app.route('/show_video', methods=['GET'])
-def show_video():
-    # url = db.video.find({}, {"_id": False})
-    #
-    # return jsonify({"result": "success", "url": url})
-
-    url = list(db["video"].find({}).sort({_id: -1}).limit(1))
-    return json.dumps(url, default=json_util.default)
-
-
-
-@app.route('/save_url', methods=['POST'])
-def save_url():
-    db.video.remove({})
-    url = get_url()
-
-
-    doc = {
-        "url": url
-    }
-    db.video.insert_one(doc)
-
-    return jsonify({'result': 'success', 'msg': '성공'})
 
 
 @app.route('/delete_comment', methods=['POST'])
@@ -286,7 +286,6 @@ def delete_comment():
     db.posts.delete_one(doc)
     # return jsonify({'result': 'success', 'msg': f'단어 {user_info} 삭제'})
     return jsonify({'result': 'success', 'msg': '코멘트 삭제'})
-
 
 
 
