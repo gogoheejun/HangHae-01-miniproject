@@ -1,7 +1,10 @@
 
 current_video_url = "";
 
-$(document).ready( get_new_video())
+$(document).ready(()=>{
+    get_new_video()
+
+})
 
 function get_new_video() {
     $.ajax({
@@ -86,6 +89,7 @@ function update_post(id){
 
 //댓글가져오기-index.html과 user.html에서 모두 사용됨
 function get_posts(username) {
+
     if (username == undefined) {
         username = ""
     }
@@ -97,10 +101,14 @@ function get_posts(username) {
         success: function (response) {
             if (response["result"] == "success") {
                 let posts = response["posts"]
+
+                let ranks = [];
                 for (let i = 0; i < posts.length; i++) {
                     let post = posts[i]
                     let time_post = new Date(post["date"])
                     let time_before = time2str(time_post)
+
+                    ranks.push({comment:post["comment"],count:post["count_like"]});
 
                     let class_heart = post['heart_by_me'] ? "fa-heart" : "fa-heart-o"
                     // let count_heart = post['count_heart']
@@ -194,6 +202,13 @@ function get_posts(username) {
                                     </div>`
                     post['by_me']? $("#post-box").append(html_temp_true): $("#post-box").append(html_temp_false);
                 }
+                ranks_sorted = ranks.sort((a,b)=>{
+                    return b.count - a.count
+                })
+                console.log(ranks_sorted)
+                $("#ranking_list").text("1등: "+ranks_sorted[0].comment+"\n"+
+                    "2등: "+ranks_sorted[1].comment)
+
             }
         }
     })
