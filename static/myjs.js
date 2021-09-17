@@ -279,4 +279,5 @@ function toggle_like(post_id, type) {
         })
 
     }
+
 }
