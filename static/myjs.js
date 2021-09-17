@@ -1,4 +1,5 @@
 
+
 current_video_url = "";
 
 $(document).ready( get_new_video())
@@ -20,7 +21,6 @@ function get_new_video() {
                 console.log("유튜브 가져오는 과정에서 예외")
                 console.log(response)
             }
-
         }
     })
 }
@@ -52,8 +52,6 @@ function delete_comment(comment){
         }
     })
 }
-
-
 
 //댓글 업로드(수정포함)
 function post() {

@@ -8,8 +8,9 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
-from bson import json_util
-import json
+import threading
+
+
 import time
 import schedule
 
@@ -18,6 +19,7 @@ import schedule
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config['UPLOAD_FOLDER'] = "./static/profile_pics"
+
 
 SECRET_KEY = 'SPARTA'
 
@@ -179,12 +181,15 @@ def posting():
         return redirect(url_for("home"))
 
 
+
 @app.route('/posting', methods=['POST'])
 def update_comment():
     db.suer.update_one({'comment' : ''})
 
 
 
+
+=======
 
 # 댓글 가져오기
 @app.route("/get_posts", methods=['GET'])
@@ -244,6 +249,7 @@ def update_like():
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return redirect(url_for("home"))
 
+
 @app.route("/get_new_video", methods=['GET'])
 def get_new_video():
     print("1")
@@ -269,6 +275,8 @@ def get_url():
     except:
         print("get_url 예외처리")
         return get_url()
+=======
+
 
 
 @app.route('/delete_comment', methods=['POST'])
@@ -294,6 +302,50 @@ def delete_post():
     db.posts.remove({})
     return jsonify({'result': 'success'})
 
+
+@app.route('/get_url_from_db', methods=['GET'])
+def get_url_from_db():
+    videos = db.video.find()
+    for video in videos:
+        url = video['url']
+        return jsonify({'result': 'success', 'video': url})
+
+
+
+# url 크롤링해서 리턴해주는 함수
+def get_url():
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
+    data = requests.get('https://randomvideo.pythonanywhere.com/', headers=headers)
+
+    soup = BeautifulSoup(data.text, 'html.parser')
+    raw_source = str(soup.select('body > iframe'))
+    try:
+        src = raw_source.split("=")[-2][1:]
+        print(src)
+        return src
+    except:
+        get_url()
+
+
+# url 새로 받아와서 디비에 저장하는 함수
+def save_url_in_db():
+    db.video.remove({})
+    url = get_url()
+    doc = {
+        "url": url
+    }
+    db.video.insert_one(doc)
+    return "saved url in db"
+
+
+# 새로운 쓰레드로  7초마다 반복하는 함수
+def refresh_url_in_db():
+    save_url_in_db()
+    threading.Timer(15, refresh_url_in_db).start()
+
+
+refresh_url_in_db()
 
 
 
