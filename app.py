@@ -187,10 +187,6 @@ def update_comment():
     db.suer.update_one({'comment' : ''})
 
 
-
-
-=======
-
 # 댓글 가져오기
 @app.route("/get_posts", methods=['GET'])
 def get_posts():
@@ -275,7 +271,7 @@ def get_url():
     except:
         print("get_url 예외처리")
         return get_url()
-=======
+
 
 
 
