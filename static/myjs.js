@@ -100,7 +100,8 @@ function get_posts(username) {
                     let post = posts[i]
                     let time_post = new Date(post["date"])
                     let time_before = time2str(time_post)
-                    ranks.push({"comment":post["comment"], "count":post["count_like"]})
+                    ranks.push({"comment": post["comment"], "count":post["count_heart"]})
+                    console.log(ranks)
 
                     let class_heart = post['heart_by_me'] ? "fa-heart" : "fa-heart-o"
                     // let count_heart = post['count_heart']
@@ -198,16 +199,28 @@ function get_posts(username) {
                      
                                         </article>
                                     </div>`
-                    post['by_me']? $("#post-box").append(html_temp_true): $("#post-box").append(html_temp_false);
+                    post['by_me'] ? $("#post-box").append(html_temp_true) : $("#post-box").append(html_temp_false);
                 }
-                ranks_sorted = ranks.sort((a,b)=>{
-                    b.count - a.count
+                let ranks_sorted = ranks.sort((a, b) => {
+                    let total
+                    return total = b.count - a.count
                 })
-                console.log("1등:"+ ranks_sorted[0].comment +"2등"+ranks_sorted[1].comment)
+
+
+                 for (let i = 0; i <3; i++) {
+
+                     let html_temp = `
+
+
+                      <p>${i+1}등: ${ranks_sorted[i].comment}</p> `
+
+                     $("#ranking_box").append(html_temp)
+                 }
             }
         }
     })
 }
+
 
 function time2str(date) {
     let today = new Date()
