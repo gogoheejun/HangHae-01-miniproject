@@ -85,7 +85,7 @@ def sign_in():
         }
         # token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
-        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256').decode('utf-8')
 
         # decode('utf-8')>> 문자열로 반환시켜줌.
 

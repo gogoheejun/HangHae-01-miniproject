@@ -5,7 +5,7 @@
 <head>
 
     <!-- Webpage Title -->
-    <title>그 날의 주제</title>
+    <title>유튭 랜박</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='ogimg.png') }}" type="image/x-icon">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <meta property="og:title" content="자유롭게 얘기해 보아요"/>
@@ -30,6 +30,14 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
     <script src="{{ url_for('static', filename='myjs.js') }}"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            get_posts()
+        })
+
+    </script>
 
     <style>
         #video-place {
@@ -56,14 +64,43 @@
             margin-top: 30px;
         }
 
+        .best-box-wrap {
+            height: 300px;
+            width: 100px;
+        }
+
+        .best_title {
+            display: inline-block;
+            margin-top: 300px;
+            /*position: absolute;*/
+            top: 100px;
+            left: 1200px;
+            width: 150px;
+            height: auto;
+            border: 3px solid black;
+            border-radius: 10px;
+            color: black;
+            background-color: white;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .best {
+            display: inline-block;
+            /*position: sticky;*/
+            /*margin-top: -100px;*/
+            top: 20px;
+            left: 1200px;
+            width: 150px;
+            height: auto;
+            border: 3px solid black;
+            border-radius: 10px;
+            color: black;
+            background-color: white;
+            text-align: center;
+        }
+
     </style>
-
-    <script>
-        $(document).ready(function () {
-            get_posts()
-        })
-
-    </script>
 
 </head>
 <body class="has-navbar-fixed-top">
@@ -72,10 +109,18 @@
         <a class="navbar-item" href="/">
             <img src="{{ url_for('static', filename='play.png') }}">
             <strong class="is-sparta"
-                    style="font-family: 'Stylish', sans-serif;font-size: larger;">그 날의 주제</strong>
+                    style="font-family: 'Stylish', sans-serif;font-size: larger;">유튭 랜박</strong>
         </a>
     </div>
 </nav>
+
+
+    <div class="best-box-wrap" style="position: fixed; right: 300px; top:200px">
+<!--        <div class="best_title">!!좋아요 왕!!</div>-->
+<!--        <br>-->
+        <div class="best" id="ranking_box"></div>
+    </div>
+
 <section class="section">
     <div id="video-place">
         <iframe src="" frameborder="0"
@@ -86,6 +131,8 @@
     </div>
     <button class="video-btn" onclick="get_new_video()">동영상 랜덤 재생</button>
 </section>
+
+
 
 <section class="section">
     <article class="media">
@@ -158,6 +205,7 @@
                             글을 적는 칸
                         </p>
                     </div>
+
                     <nav class="level is-mobile">
                         <div class="level-left">
                             <a class="level-item is-sparta" aria-label="heart"
@@ -186,6 +234,12 @@
 
     </div>
 </section>
+
+<!--<div class="wrap">-->
+<!--    <div class="best" id="ranking_box">-->
+
+<!--    </div>-->
+<!--</div>-->
 </body>
 
 
